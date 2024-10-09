@@ -1,84 +1,69 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <stack>
-#include <climits>
-
+#include <bits/stdc++.h>
 using namespace std;
+const long long inf = 1e18;
 
-// Function to find and print the shortest path
-void shortest_path(int N, int M, int s, int t, vector<vector<pair<int, int>>>& adj) {
-    // Distance array to store shortest distance from s to all vertices
-    vector<long long> dist(N, LLONG_MAX);
-    // Parent array to reconstruct the path
-    vector<int> parent(N, -1);
-    // Min-heap priority queue to store (distance, vertex)
-    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+int main() {
+    int n, m, st, t;
+    cin >> n >> m >> st >> t;
 
-    // Initialize the start vertex
-    dist[s] = 0;
-    pq.push({0, s});
+    // Adjust the graph and dist vectors for 0-indexing
+    vector<long long> dist(n, inf);
+    vector<int> parent(n, -1); // To reconstruct the path
+    vector<vector<pair<int, int>>> graph(n);
 
-    while (!pq.empty()) {
-        auto [d, u] = pq.top();
-        pq.pop();
+    // Reading the edges
+    for (int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        graph[u].push_back({v, w});
+    }
 
-        // If the current distance is already more than the shortest known distance, skip
-        if (d > dist[u]) continue;
+    // Dijkstra's algorithm
+    dist[st] = 0;
+    set<pair<long long, int>> s;
+    s.insert({0, st});
 
-        // Explore neighbors
-        for (auto& [v, weight] : adj[u]) {
-            if (dist[u] + weight < dist[v]) {
-                dist[v] = dist[u] + weight;
-                parent[v] = u;  // Track the path
-                pq.push({dist[v], v});
+    while (!s.empty()) {
+        auto x = *(s.begin());
+        s.erase(x);
+
+        int u = x.second;
+        long long d = x.first;
+
+        for (auto it : graph[u]) {
+            int v = it.first;
+            int w = it.second;
+
+            if (dist[v] > dist[u] + w) {
+                s.erase({dist[v], v}); // If v is already in the set, remove it
+                dist[v] = dist[u] + w;
+                parent[v] = u;  // Store the parent to reconstruct the path
+                s.insert({dist[v], v});
             }
         }
     }
 
-    // If no path exists
-    if (dist[t] == LLONG_MAX) {
+    // If there is no path from st to t, print -1
+    if (dist[t] == inf) {
         cout << -1 << endl;
-        return;
+    } else {
+        // Reconstruct and print the path
+        vector<int> path;
+        for (int v = t; v != -1; v = parent[v]) {
+            path.push_back(v);
+        }
+        reverse(path.begin(), path.end());
+
+        // Output format:
+        // 1. The shortest path length
+        // 2. Number of edges in the path
+        // 3. The edges in the path
+        cout << dist[t] << " " << path.size() - 1 << endl;
+        for (int i = 0; i + 1 < path.size(); i++) {
+            cout << path[i] << " " << path[i + 1] << endl;
+        }
     }
-
-    // Reconstruct the path
-    stack<int> path;
-    int curr = t;
-    while (curr != -1) {
-        path.push(curr);
-        curr = parent[curr];
-    }
-
-    // Output the path length and number of edges
-    cout << dist[t] << " " << path.size() - 1 << endl;
-
-    // Output the edges in the path
-    int prev = path.top();
-    path.pop();
-    while (!path.empty()) {
-        int next = path.top();
-        path.pop();
-        cout << prev << " " << next << endl;
-        prev = next;
-    }
-}
-
-int main() {
-    int N, M, s, t;
-    cin >> N >> M >> s >> t;
-
-    vector<vector<pair<int, int>>> adj(N);
-
-    // Reading the edges
-    for (int i = 0; i < M; i++) {
-        int a, b, c;
-        cin >> a >> b >> c;
-        adj[a].push_back({b, c});
-    }
-
-    // Call the function to find the shortest path
-    shortest_path(N, M, s, t, adj);
 
     return 0;
 }
+
