@@ -1,0 +1,84 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <climits>
+
+using namespace std;
+
+// Function to find and print the shortest path
+void shortest_path(int N, int M, int s, int t, vector<vector<pair<int, int>>>& adj) {
+    // Distance array to store shortest distance from s to all vertices
+    vector<long long> dist(N, LLONG_MAX);
+    // Parent array to reconstruct the path
+    vector<int> parent(N, -1);
+    // Min-heap priority queue to store (distance, vertex)
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+
+    // Initialize the start vertex
+    dist[s] = 0;
+    pq.push({0, s});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        // If the current distance is already more than the shortest known distance, skip
+        if (d > dist[u]) continue;
+
+        // Explore neighbors
+        for (auto& [v, weight] : adj[u]) {
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                parent[v] = u;  // Track the path
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    // If no path exists
+    if (dist[t] == LLONG_MAX) {
+        cout << -1 << endl;
+        return;
+    }
+
+    // Reconstruct the path
+    stack<int> path;
+    int curr = t;
+    while (curr != -1) {
+        path.push(curr);
+        curr = parent[curr];
+    }
+
+    // Output the path length and number of edges
+    cout << dist[t] << " " << path.size() - 1 << endl;
+
+    // Output the edges in the path
+    int prev = path.top();
+    path.pop();
+    while (!path.empty()) {
+        int next = path.top();
+        path.pop();
+        cout << prev << " " << next << endl;
+        prev = next;
+    }
+}
+
+int main() {
+    int N, M, s, t;
+    cin >> N >> M >> s >> t;
+
+    vector<vector<pair<int, int>>> adj(N);
+
+    // Reading the edges
+    for (int i = 0; i < M; i++) {
+        int a, b, c;
+        cin >> a >> b >> c;
+        adj[a].push_back({b, c});
+    }
+
+    // Call the function to find the shortest path
+    shortest_path(N, M, s, t, adj);
+
+    return 0;
+}
