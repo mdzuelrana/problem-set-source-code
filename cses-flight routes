@@ -1,0 +1,63 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define int long long
+#define pii pair<int, int>
+#define pb push_back
+
+void solve() {
+    int n, m, k;
+    cin >> n >> m >> k;
+    
+    // Adjacency list
+    vector<vector<pii>> adj(n + 1);
+    
+    // Read input
+    for (int i = 0; i < m; i++) {
+        int a, b, w;
+        cin >> a >> b >> w;
+        adj[a].pb({b, w});
+    }
+
+    // Priority queue for Dijkstra-like exploration (stores {distance, node})
+    priority_queue<pii> pq;
+    pq.push({0, 1});  // Start from city 1 with distance 0
+
+    // Array to count how many times we visited each node
+    vector<int> vis(n + 1, 0);
+
+    // Continue exploring until we find k paths to node n
+    while (!pq.empty() && vis[n] < k) {
+        int d = -pq.top().first;  // Get the distance (negated to simulate min-heap)
+        int a = pq.top().second;  // Current node
+        pq.pop();
+
+        // Mark this node as visited one more time
+        vis[a]++;
+
+        // If we're at the target node n, print the distance
+        if (a == n) {
+            cout << d << " ";
+        }
+
+        // If we haven't visited this node k times yet, continue exploring its neighbors
+        if (vis[a] <= k) {
+            for (auto [b, w] : adj[a]) {
+                pq.push({-(d + w), b});
+            }
+        }
+    }
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+
+    int t = 1;
+    // cin >> t;
+    while (t--) {
+        solve();
+    }
+    
+    return 0;
+}
