@@ -1,0 +1,60 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+
+using std::cout;
+using std::endl;
+using std::vector;
+
+int main() {
+    int n;  // number of cities
+    int m;  // number of flights
+    std::cin >> n >> m;
+
+    vector<vector<std::pair<int, int>>> neighbors(n);
+    for (int i = 0; i < m; i++) {
+        int a, b, w;  // a: from city, b: to city, w: cost
+        std::cin >> a >> b >> w;
+        neighbors[--a].push_back({--b, w});  // Decrement for 0-based indexing
+    }
+
+    vector<vector<long long>> min_cost(n, {INT64_MAX, INT64_MAX});
+    min_cost[0] = {0, 0};
+
+    struct Pos {
+        int pos;         // the current position
+        bool used;       // whether we've used up our discount yet
+        long long cost;  // the cost associated with this state
+    };
+
+    auto cmp = [&](const Pos &a, const Pos &b) { return a.cost > b.cost; };
+    std::priority_queue<Pos, vector<Pos>, decltype(cmp)> frontier(cmp);
+    frontier.push({0, false, 0});  // Start from city 1 (0 in 0-based)
+
+    while (!frontier.empty()) {
+        Pos curr = frontier.top();
+        frontier.pop();
+        long long curr_cost = min_cost[curr.pos][curr.used];
+        if (curr_cost != curr.cost) { continue; }
+        if (curr.pos == n - 1) { break; }  // If we reached the last city, exit
+
+        for (auto [nxt, nc] : neighbors[curr.pos]) {
+            // If we haven't used the discount yet, try using it now
+            if (!curr.used) {
+                long long new_cost = curr_cost + nc / 2;
+                if (new_cost < min_cost[nxt][1]) {
+                    min_cost[nxt][1] = new_cost;
+                    frontier.push(Pos{nxt, true, new_cost});
+                }
+            }
+
+            // Always try the normal cost route
+            if (curr_cost + nc < min_cost[nxt][curr.used]) {
+                min_cost[nxt][curr.used] = curr_cost + nc;
+                frontier.push(Pos{nxt, curr.used, curr_cost + nc});
+            }
+        }
+    }
+
+    cout << min_cost[n - 1][1];  // Output the minimum cost to reach the last city using the discount
+}
