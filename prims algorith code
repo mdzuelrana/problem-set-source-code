@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m, u, v, w;
+const int inf = 1e9;
+const int N = 1e5 + 3;
+vector<bool> vis(N); 
+vector<int> dist(N), parent(N);
+vector<vector<pair<int, int>>> g(N); 
+int cost = 0;
+
+void primsMST(int source) {
+    dist[source] = 0;
+    set<pair<int, int>> s; 
+    s.insert({0, source}); // {distance, vertex}
+
+    while (!s.empty()) {
+        auto x = *(s.begin());
+        s.erase(x);
+        vis[x.second] = true; // Using x.second instead of x[1]
+        int u = x.second; // Current vertex
+        int w = x.first;  // Weight of the edge
+
+        cost += w; // Add the weight of the edge to cost
+
+        for (auto it : g[u]) {
+            int v = it.first; // Get the adjacent vertex
+            int weight = it.second; // Get the edge weight
+
+            if (vis[v]) { continue; }
+            if (dist[v] > weight) {
+                s.erase({dist[v], v});
+                dist[v] = weight;
+                parent[v] = u; 
+                s.insert({dist[v], v}); 
+            }
+        }
+    }
+}
+
+int main() {
+    cin >> n >> m; 
+    
+    
+    for (int i = 1; i <= n; i++) {
+        dist[i] = inf; 
+    }
+
+    for (int i = 0; i < m; i++) {
+        cin >> u >> v >> w;
+        g[u].push_back({v, w}); 
+        g[v].push_back({u, w}); 
+    }
+    
+   
+    primsMST(1); 
+
+    cout << cost << endl;
+    
+    return 0;
+}
